@@ -229,6 +229,49 @@ def history_menu():
         else:
             print("Invalid choice.")
 
+def update_incident_status():
+    rows = read_incident_log()
+
+    if not rows:
+        print("\nNo incidents found.")
+        return
+
+    print_incidents(rows, "Current Incidents")
+
+    incident_id = input("\nEnter Incident ID to update (e.g., INC-0001) or 'back': ").strip()
+
+    if incident_id.lower() == "back":
+        return
+
+    valid_status = {"OPEN", "IN_PROGRESS", "CLOSED"}
+
+    new_status = input("Enter new status (OPEN / IN_PROGRESS / CLOSED): ").strip().upper()
+
+    if new_status not in valid_status:
+        print("Invalid status.")
+        return
+
+    updated = False
+
+    for row in rows:
+        if row.get("id") == incident_id:
+            row["status"] = new_status
+            updated = True
+            break
+
+    if not updated:
+        print("Incident ID not found.")
+        return
+
+    # Rewrite entire CSV file
+    with open("incident_log.csv", mode="w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["id", "time", "incident", "impact", "business_blocked", "priority", "status"])
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print("Status updated successfully.")
+
+
 
 def main():
     print("=== Incident & Response Simulator v3 ===")
@@ -237,11 +280,16 @@ def main():
         print("\nMain menu:")
         print("1) Run new incident")
         print("2) View incident history")
-        print("3) Quit")
+        print("3) Update incident status")      
+        print("4) Quit")
 
-        choice = input("Choose 1-3: ").strip()
+        choice = input("Choose 1-4: ").strip()
 
         if choice == "3":
+            update_incident_status()
+            continue
+
+        if choice == "4":                                   
             print("Goodbye!")
             break
 
